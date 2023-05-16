@@ -1,23 +1,25 @@
 clear; clc; close all;
 
 % 音源読み込み
-[sig_s1, Fs] = audioread("audiofiles\audio1.wav"); %#ok<ASGLU> 
-[sig_s2, Fs] = audioread("audiofiles\audio2.wav");
+[sig_s1, Fs] = audioread("audiofiles\shisoutsuyoi.wav"); %#ok<ASGLU> 
+[sig_s2, Fs] = audioread("audiofiles\kaerunouta.wav");
 
 % 信号の長さを長いほうに揃える
 if length(sig_s1) ~= length(sig_s2)
     [sig_s1, sig_s2, sig_len] = AlignSignal(sig_s1, sig_s2);
+else
+    sig_len = length(sig_s1);
 end
 S = [sig_s1, sig_s2];
 
 % 混合音を疑似的に収録(もともと混合されている場合はスルー)
-A = [0.6, 0.7;
-     0.8, 0.5];
+ A = [0.6, 0.7;
+      0.8, 0.5];
 [X, x1, x2] = MixSound(S, A);
 % 混合されている場合は以下を実行
-% x1 = sig_s1;
-% x2 = sig_s2;
-% X = [x1, x2];
+% x1 = sig_s1';
+% x2 = sig_s2';
+% X = [x1;x2];
 
 % 自然勾配法でBSS
 step_size = 0.5;
