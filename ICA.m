@@ -69,7 +69,7 @@ function [X, x1, x2] = MixSound(S, A)
     x2 = X(2,:);
 end
 
-function [Y, W, costfunc_history] = BSS(X, step_size, replay, random_seed, sig_len)
+function [Y, W, costfunc_history] = BSS(X, step_size, iter_num, random_seed, sig_len)
 % BSSを行う
 %
 % @return Y 分離音源の行列
@@ -83,8 +83,7 @@ function [Y, W, costfunc_history] = BSS(X, step_size, replay, random_seed, sig_l
     rng(random_seed);
     W = randn(2);
     I = eye(2);
-    E = zeros(2);
-    costfunc_history = zeros(1, replay);
+    costfunc_history = zeros(1, iter_num);
     % 生成モデル
     PFunc = @(Y) sech(Y)/pi;
     % スコア関数
@@ -92,9 +91,18 @@ function [Y, W, costfunc_history] = BSS(X, step_size, replay, random_seed, sig_l
     % KLダイバージェンス
     KLdivFunc = @(W, Y) -log(abs(det(W))) - sum(log(PFunc(Y)), 'all')/sig_len; 
     
-    for l = 0:replay-1
+    Y = zeros(size(X));
+    for l = 0:iter_num-1
         % 期待値計算
-        E = (PhiFunc(W*X) * (W*X)')/sig_len;
+        E = zeros(2);
+        for t = 1 : sig_len
+            Y(:, t) = W * X(:, t);
+            p = PhiFunc(Y(:, t));
+            R = p * Y(:, t).';
+            E = E + (1/sig_len) * R;
+        end
+        % 期待値計算（高速化）
+        % E = (PhiFunc(W*X) * (W*X).')/sig_len;
         % 最急降下法
         W = W - step_size * (E-I) * W;
         % コスト関数計算
